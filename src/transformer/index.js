@@ -2,8 +2,13 @@ import fs from "fs"
 import { Image } from "image-js"
 import { basename, extname, join } from "path"
 import { isEmpty, path } from "ramda"
-import { arrayToRange, convolutions, encodeString, sleep } from "./utils/index.js"
-import { IMAGE_EXTENSIONS } from "./config/index.js"
+import {
+	arrayToRange,
+	convolutions,
+	encodeString,
+	sleep,
+} from "../utils/index.js"
+import { IMAGE_EXTENSIONS } from "../config/index.js"
 
 const processed = []
 let CLASSIFIER
@@ -28,17 +33,18 @@ function transform(imgDIR, labels = []) {
 	return new Promise((resolve) => {
 		setTimeout(async () => {
 			// Get a list of all files in the directory
-			const files =
-				TYPE === "batch" ? fs.readdirSync(imgDIR) : [ imgDIR ]
-			
+			const files = TYPE === "batch" ? fs.readdirSync(imgDIR) : [imgDIR]
+
 			let count = 1
 
 			if (isEmpty(files)) return console.log("No images found in folder!")
 
 			// Check files length
 			const LARGE_FOLDER = files.length > 100
-			if(LARGE_FOLDER) {
-				console.log(`Image Transformation started! ${files.length} files were detected. This may take time to transform and train!`);
+			if (LARGE_FOLDER) {
+				console.log(
+					`Image Transformation started! ${files.length} files were detected. This may take time to transform and train!`,
+				)
 				console.log(
 					"\n\nTo stop your computer from SLEEPING during training \nMacbook (Run via Terminal): caffeinate -d\n",
 				)
@@ -62,10 +68,13 @@ function transform(imgDIR, labels = []) {
 					let image = await Image.load(img)
 					let machineReadableImg = image
 						.grey() // convert the image to greyscale.
-						.resize({ width: imageSize?.width || 144, height: imageSize?.height || 144 })
+						.resize({
+							width: imageSize?.width || 144,
+							height: imageSize?.height || 144,
+						})
 
 					const convoluted = applyConvolutions(machineReadableImg)
-						
+
 					// Apply convolutions
 					machineReadableImg = convoluted.getPixelsArray()
 
@@ -84,7 +93,7 @@ function transform(imgDIR, labels = []) {
 							imageLabel,
 						}
 					}
-					if(LARGE_FOLDER){
+					if (LARGE_FOLDER) {
 						console.log("Image number " + count + " has been processed")
 						count += 1
 					}

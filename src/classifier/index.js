@@ -1,6 +1,5 @@
 import { CrossValidate, NeuralNetwork } from "brain.js"
-import fs from "fs"
-import transformer from "../transformer.js"
+import transformer from "../transformer/index.js"
 import { isEmpty, path } from "ramda"
 import { defaults } from "../config/index.js"
 import test from "./test.js"
