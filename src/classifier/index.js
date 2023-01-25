@@ -4,6 +4,7 @@ import transformer from "../transformer.js"
 import { isEmpty, path } from "ramda"
 import { defaults } from "../config/index.js"
 import test from "./test.js"
+import train from "./train.js"
 
 function Classifier(MODEL_NAME) {
 	if (isEmpty(MODEL_NAME)) throw new Error("No model name specified")
@@ -41,43 +42,16 @@ function Classifier(MODEL_NAME) {
 		)
 		const modelPath = `./AI/models/${this.name.toLowerCase()}`
 		const DIR = customImgsPath || modelPath + "/training_images"
-		transformer(OUTPUT_LABELS, {
+		return transformer(OUTPUT_LABELS, {
 			classifier: this,
 			DIR: { path: DIR, isCustom: !!customImgsPath },
 			modelPath,
-		}).then((trainingData) => {
-			if (trainingData.length) {
-				//   Train the model on the training data
-				console.log("Training with", trainingData.length, "images")
-				const saveModelPath = modelPath + "/generated/"
-
-				const start = new Date()
-				console.log(
-					"Training started at " +
-						start +
-						"\nPlease wait, This may take a while!",
-				)
-				this.crossValidate.train(trainingData, this.configurations.training)
-
-				console.log(
-					"TRAINING DONE 🎉! Saving training data to " + saveModelPath,
-				)
-				const json = this.crossValidate.toJSON() // all stats in json as well as neural networks
-				const data = JSON.stringify(json)
-
-				// Write Model to disk for later
-				if (!fs.existsSync(saveModelPath)) {
-					fs.mkdirSync(saveModelPath, { recursive: true })
-				}
-				fs.writeFileSync(
-					saveModelPath + `${this.name.toLowerCase()}-training-data.json`,
-					data,
-				)
-
-				const end = new Date().getTime()
-				console.log("end", (end - start) / 1000)
-			}
-		})
+			type: "batch",
+		}).then((trainingData) =>
+			train(this, trainingData, {
+				modelPath,
+			}),
+		)
 	}
 
 	this.test = {}

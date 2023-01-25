@@ -27,10 +27,6 @@ const applyConvolutions = (image) => {
 function transform(imgDIR, labels = []) {
 	return new Promise((resolve) => {
 		setTimeout(async () => {
-			// const saveConvolutions = path(
-			// 	["configurations", "training", "saveConvolutions"],
-			// 	CLASSIFIER,
-			// )
 			// Get a list of all files in the directory
 			const files =
 				TYPE === "batch" ? fs.readdirSync(imgDIR) : [ imgDIR ]
@@ -69,16 +65,6 @@ function transform(imgDIR, labels = []) {
 						.resize({ width: imageSize?.width || 144, height: imageSize?.height || 144 })
 
 					const convoluted = applyConvolutions(machineReadableImg)
-
-					// if (saveConvolutions){
-					// 	const convolutionsPath = `${MODEL_PATH}/generated/convolutions/`
-					// 	if (!fs.existsSync(convolutionsPath)) {
-					// 		fs.mkdirSync(convolutionsPath, { recursive: true })
-					// 	}
-					// 	const cImgPath = convolutionsPath + imageName
-					// 	convoluted.save(`${cImgPath}.jpg`)
-					// 	// console.log(`${imageName}.jpg covolution has been generated and saved!`)
-					// }
 						
 					// Apply convolutions
 					machineReadableImg = convoluted.getPixelsArray()
