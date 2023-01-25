@@ -14,11 +14,11 @@ const DEFAULT_CONFIGS = [
 	{
 		name: "training",
 		default: {
-			// iterations: 15000,
-			// log: true,
-			// logPeriod: 150,
-			// layers: [32],
-			// learningRate: 0.5,
+			iterations: 15000,
+			log: true,
+			logPeriod: 150,
+			layers: [32],
+			learningRate: 0.5,
 		},
 	},
 ]
@@ -42,8 +42,10 @@ function Classifier(MODEL_NAME) {
 
 	this.configure = (config, options) => {
 		const prevConfig = DEFAULT_CONFIGS.find(({ name }) => config === name)
-		if (prevConfig)
-			return (this.configurations[config] = { ...prevConfig, ...options })
+		if (prevConfig) {
+            this.configurations[config] = { ...this.configurations[config], ...options }
+            return
+        }
 		throw new Error("Invalid configuration type")
 	}
 
