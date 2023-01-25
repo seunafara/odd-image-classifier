@@ -54,13 +54,12 @@ function Classifier(MODEL_NAME) {
 	}
 
 	this.train = (OUTPUT_LABELS) => {
-		const customPath = path(["configurations", "training", "path"], this)
-		const DIR = customPath || `./AI/models/${this.name.toLowerCase()}`
-		const trainingImagesDir = DIR + "/training_images"
-
+		const customPath = path(["configurations", "training", "customPath"], this)
+        const modelPath = `./AI/models/${this.name.toLowerCase()}`
+		const DIR = customPath || modelPath + "/training_images"
 		transform(OUTPUT_LABELS, {
 			classifier: this,
-			DIR: { path: trainingImagesDir, isCustom: !!customPath },
+			DIR: { path: DIR, isCustom: !!customPath },
 		}).then((trainingData) => {
 			if (trainingData.length) {
 				//   Train the model on the training data
