@@ -9,6 +9,7 @@ const processed = []
 let CLASSIFIER
 let INCLUDE_METADATA
 let MODEL_PATH
+let TYPE
 
 const applyConvolutions = (image) => {
 	const canClassify = path(
@@ -31,10 +32,14 @@ function transform(imgDIR, labels = []) {
 			// 	CLASSIFIER,
 			// )
 			// Get a list of all files in the directory
-			const files = fs.readdirSync(imgDIR)
+			const files =
+				TYPE === "batch" ? fs.readdirSync(imgDIR) : [ imgDIR ]
+			
 			let count = 1
 
 			if (isEmpty(files)) return console.log("No images found in folder!")
+
+			console.log(files)
 
 			// Check files length
 			const LARGE_FOLDER = files.length > 100
@@ -52,7 +57,7 @@ function transform(imgDIR, labels = []) {
 
 			for (let file of files) {
 				if (file.match(IMAGE_EXTENSIONS)) {
-					const img = join(imgDIR, file)
+					const img = TYPE === "batch" ? join(imgDIR, file) : imgDIR
 					const imageName = basename(file, extname(file))
 					const imageLabel = imageName.substring(0, imageName.indexOf("."))
 					// We determine the label by picking the string before the first .
@@ -116,11 +121,12 @@ async function start(DIR, labels) {
 
 export default async (
 	OUTPUT_LABELS,
-	{ classifier, DIR, includeMetaData, modelPath },
+	{ classifier, DIR, includeMetaData, modelPath, type },
 ) => {
 	CLASSIFIER = classifier
 	INCLUDE_METADATA = includeMetaData
 	MODEL_PATH = modelPath
+	TYPE = type
 
 	if (!DIR.isCustom && !fs.existsSync(DIR.path)) {
 		fs.mkdirSync(DIR.path, { recursive: true })
