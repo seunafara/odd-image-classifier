@@ -1,10 +1,9 @@
 import { CrossValidate, NeuralNetwork } from "brain.js"
 import fs from "fs"
-import transformer from "./transformer.js"
+import transformer from "../transformer.js"
 import { isEmpty, path } from "ramda"
-import { defaults } from "./config/index.js"
-import decodeString from "./utils/decodeString.js"
-import test from "./classifier/test.js"
+import { defaults } from "../config/index.js"
+import test from "./test.js"
 
 function Classifier(MODEL_NAME) {
 	if (isEmpty(MODEL_NAME)) throw new Error("No model name specified")
@@ -105,7 +104,6 @@ function Classifier(MODEL_NAME) {
 
 	this.test.single = (imagePath = null, options = { chopOutput: true }) => {
 		const modelPath = `./AI/models/${this.name.toLowerCase()}`
-		// const DIR = imagesPath || modelPath + "/testing_images"
 		const generatedPath = modelPath + "/generated/"
 		const SAVED_MODEL_PATH =
 			generatedPath + "/" + `${this.name.toLowerCase()}-training-data.json`
