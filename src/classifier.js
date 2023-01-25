@@ -36,16 +36,17 @@ function Classifier(MODEL_NAME) {
 
 	this.train = (OUTPUT_LABELS) => {
 		const customImgsPath = path(["configurations", "training", "imagesPath"], this)
-        const modelPath = `./AI/models/${this.name.toLowerCase()}/`
-		const DIR = customImgsPath || modelPath + "training_images/"
+        const modelPath = `./AI/models/${this.name.toLowerCase()}`
+		const DIR = customImgsPath || modelPath + "/training_images"
 		transformer(OUTPUT_LABELS, {
 			classifier: this,
 			DIR: { path: DIR, isCustom: !!customImgsPath },
+			modelPath,
 		}).then((trainingData) => {
 			if (trainingData.length) {
 				//   Train the model on the training data
 				console.log("Training with", trainingData.length, "images")
-				const saveModelPath = modelPath + "generated/"
+				const saveModelPath = modelPath + "/generated/"
 
 				const start = new Date()
 				console.log(
@@ -55,7 +56,9 @@ function Classifier(MODEL_NAME) {
 				)
 				this.crossValidate.train(trainingData, this.configurations.training)
 
-				console.log("TRAINING DONE 🎉! Saving training data to " + saveModelPath)
+				console.log(
+					"TRAINING DONE 🎉! Saving training data to " + saveModelPath,
+				)
 				const json = this.crossValidate.toJSON() // all stats in json as well as neural networks
 				const data = JSON.stringify(json)
 
@@ -74,16 +77,18 @@ function Classifier(MODEL_NAME) {
 		})
 	}
 
-	this.test = (options = { imagesPath: null, chopOutput: true }) => {
-        const modelPath = `./AI/models/${this.name.toLowerCase()}`
-		const DIR = options.imagesPath || modelPath + "/testing_images"
+    this.test = {}
+
+	this.test.batch = (imagesPath = null, options = { chopOutput: true }) => {
+		const modelPath = `./AI/models/${this.name.toLowerCase()}`
+		const DIR = imagesPath || modelPath + "/testing_images"
 		const generatedPath = modelPath + "/generated/"
 		const SAVED_MODEL_PATH =
 			generatedPath + "/" + `${this.name.toLowerCase()}-training-data.json`
 
 		transformer([], {
 			classifier: this,
-			DIR: { path: DIR, isCustom: !!options.imagesPath },
+			DIR: { path: DIR, isCustom: !!imagesPath },
 			includeMetaData: true,
 		}).then((testingData) => {
 			const start = new Date()
@@ -111,7 +116,7 @@ function Classifier(MODEL_NAME) {
 					}
 					console.log(
 						`Image: ${metadata.imageName} - Guess: ${decodeString(
-							single.key
+							single.key,
 						)} - Confidence ${(single.value * 100).toFixed(0)}% `,
 					)
 				} else {
@@ -124,6 +129,8 @@ function Classifier(MODEL_NAME) {
 			console.log("end", (end - start) / 1000)
 		})
 	}
+
+    this.test.single = (imagePath = null, options = { chopOutput: true }) => {}
 }
 
 export default Classifier
