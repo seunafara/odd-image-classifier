@@ -39,8 +39,6 @@ function transform(imgDIR, labels = []) {
 
 			if (isEmpty(files)) return console.log("No images found in folder!")
 
-			console.log(files)
-
 			// Check files length
 			const LARGE_FOLDER = files.length > 100
 			if(LARGE_FOLDER) {

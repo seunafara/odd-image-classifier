@@ -4,6 +4,7 @@ import transformer from "./transformer.js"
 import { isEmpty, path } from "ramda"
 import { defaults } from "./config/index.js"
 import decodeString from "./utils/decodeString.js"
+import test from "./classifier/test.js"
 
 function Classifier(MODEL_NAME) {
 	if (isEmpty(MODEL_NAME)) throw new Error("No model name specified")
@@ -89,49 +90,17 @@ function Classifier(MODEL_NAME) {
 		const SAVED_MODEL_PATH =
 			generatedPath + "/" + `${this.name.toLowerCase()}-training-data.json`
 
-		transformer([], {
+		return transformer([], {
 			classifier: this,
 			DIR: { path: DIR, isCustom: !!imagesPath },
 			includeMetaData: true,
-            type: 'batch'
-		}).then((testingData) => {
-			const start = new Date()
-			console.log("start", start)
-
-			const jsonData = JSON.parse(fs.readFileSync(SAVED_MODEL_PATH))
-			const net = this.crossValidate.fromJSON(jsonData)
-
-			for (let data of testingData) {
-				const { metadata } = data.output
-
-				const guess = net.run(data.input)
-				if (options.chopOutput) {
-					let single = {
-						key: null,
-						value: 0,
-					}
-					for (const [key, value] of Object.entries(guess)) {
-						if (value > single.value) {
-							single = {
-								key,
-								value,
-							}
-						}
-					}
-					console.log(
-						`Image: ${metadata.imageName} - Guess: ${decodeString(
-							single.key,
-						)} - Confidence ${(single.value * 100).toFixed(0)}% `,
-					)
-				} else {
-					console.log(`Image: ${metadata.imageName}`)
-					console.log(guess)
-				}
-			}
-
-			const end = new Date().getTime()
-			console.log("end", (end - start) / 1000)
-		})
+			type: "batch",
+		}).then((testingData) =>
+			test(this.crossValidate, testingData, {
+				modelPath: SAVED_MODEL_PATH,
+				options,
+			}),
+		)
 	}
 
 	this.test.single = (imagePath = null, options = { chopOutput: true }) => {
@@ -141,48 +110,16 @@ function Classifier(MODEL_NAME) {
 		const SAVED_MODEL_PATH =
 			generatedPath + "/" + `${this.name.toLowerCase()}-training-data.json`
 
-        transformer([], {
-					classifier: this,
-					DIR: { path: imagePath, isCustom: false },
-					includeMetaData: true,
-				}).then((testingData) => {
-					const start = new Date()
-					console.log("start", start)
-
-					const jsonData = JSON.parse(fs.readFileSync(SAVED_MODEL_PATH))
-					const net = this.crossValidate.fromJSON(jsonData)
-
-					for (let data of testingData) {
-						const { metadata } = data.output
-
-						const guess = net.run(data.input)
-						if (options.chopOutput) {
-							let single = {
-								key: null,
-								value: 0,
-							}
-							for (const [key, value] of Object.entries(guess)) {
-								if (value > single.value) {
-									single = {
-										key,
-										value,
-									}
-								}
-							}
-							console.log(
-								`Image: ${metadata.imageName} - Guess: ${decodeString(
-									single.key,
-								)} - Confidence ${(single.value * 100).toFixed(0)}% `,
-							)
-						} else {
-							console.log(`Image: ${metadata.imageName}`)
-							console.log(guess)
-						}
-					}
-
-					const end = new Date().getTime()
-					console.log("end", (end - start) / 1000)
-				})
+		return transformer([], {
+			classifier: this,
+			DIR: { path: imagePath, isCustom: false },
+			includeMetaData: true,
+		}).then((testingData) =>
+			test(this.crossValidate, testingData, {
+				modelPath: SAVED_MODEL_PATH,
+				options,
+			}),
+		)
 	}
 }
 
