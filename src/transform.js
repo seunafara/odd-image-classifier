@@ -21,7 +21,7 @@ function transform(imgDIR, labels = []) {
 			// Get a list of all files in the directory
 			const files = fs.readdirSync(imgDIR)
 
-            if(isEmpty(files)) return console.log('No imagws found in folder!')
+            if(isEmpty(files)) return console.log('No images found in folder!')
 
 			for (let file of files) {
 				if (file.match(IMAGE_EXTENSIONS)) {

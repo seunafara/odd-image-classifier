@@ -1,6 +1,6 @@
 import { CrossValidate, NeuralNetwork } from "brain.js"
 import fs from "fs"
-import recognize from "./recognize.js"
+import transform from "./transform.js"
 import { isEmpty, path } from "ramda"
 
 const DEFAULT_CONFIGS = [
@@ -57,7 +57,7 @@ function Classifier(MODEL_NAME) {
 		const DIR = customPath || `./AI/models/${this.name.toLowerCase()}`
 		const trainingImagesDir = DIR + "/training_images"
 
-		recognize(OUTPUT_LABELS, {
+		transform(OUTPUT_LABELS, {
 			classifier: this,
 			DIR: { path: trainingImagesDir, isCustom: !!customPath },
 		}).then((trainingData) => {
