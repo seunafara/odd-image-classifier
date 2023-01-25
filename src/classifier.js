@@ -2,34 +2,15 @@ import { CrossValidate, NeuralNetwork } from "brain.js"
 import fs from "fs"
 import transformer from "./transformer.js"
 import { isEmpty, path } from "ramda"
-
-const DEFAULT_CONFIGS = [
-	{
-		name: "brain",
-		default: {
-			activation: "sigmoid",
-			hiddenLayers: [9],
-		},
-	},
-	{
-		name: "training",
-		default: {
-			iterations: 15000,
-			log: true,
-			logPeriod: 150,
-			layers: [32],
-			learningRate: 0.5,
-			applyConvolutions: true,
-		},
-	},
-]
+import { defaults } from './config/index.js'
+import decodeString from './utils/decodeString.js'
 
 function Classifier(MODEL_NAME) {
 	if (isEmpty(MODEL_NAME)) throw new Error("No model name specified")
 
 	this.name = MODEL_NAME
 
-	this.configurations = DEFAULT_CONFIGS.reduce(
+	this.configurations = defaults.reduce(
 		(acc, config) => ({
 			...acc,
 			[config.name]: config.default,
@@ -42,7 +23,7 @@ function Classifier(MODEL_NAME) {
 	)
 
 	this.configure = (config, options) => {
-		const prevConfig = DEFAULT_CONFIGS.find(({ name }) => config === name)
+		const prevConfig = defaults.find(({ name }) => config === name)
 		if (prevConfig) {
 			this.configurations[config] = {
 				...this.configurations[config],
@@ -129,9 +110,9 @@ function Classifier(MODEL_NAME) {
 						}
 					}
 					console.log(
-						`Image: ${metadata.imageName} - Guess: ${
+						`Image: ${metadata.imageName} - Guess: ${decodeString(
 							single.key
-						} - Confidence ${(single.value * 100).toFixed(0)}% `,
+						)} - Confidence ${(single.value * 100).toFixed(0)}% `,
 					)
 				} else {
 					console.log(`Image: ${metadata.imageName}`)
