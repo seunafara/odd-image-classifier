@@ -1,18 +1,25 @@
 import fs from "fs"
 import { Image } from "image-js"
 import { basename, extname, join } from "path"
-import { isEmpty } from "ramda"
+import { isEmpty, path } from "ramda"
 import { arrayToRange, convolutions } from "./utils/index.js"
-import { IMAGE_EXTENSIONS } from './config/index.js'
+import { IMAGE_EXTENSIONS } from "./config/index.js"
 
 const processed = []
 let CLASSIFIER
+let INCLUDE_METADATA
 
 const applyConvolutions = (image) => {
-    for(const value of Object.values(convolutions)){
-        image = image.convolution(value)
-    }
-    return image
+	const canClassify = path(
+		["configurations", "training", "applyConvolutions"],
+		CLASSIFIER,
+	)
+	if (canClassify) {
+		for (const value of Object.values(convolutions)) {
+			image = image.convolution(value)
+		}
+	}
+	return image
 }
 
 function transform(imgDIR, labels = []) {
@@ -21,7 +28,7 @@ function transform(imgDIR, labels = []) {
 			// Get a list of all files in the directory
 			const files = fs.readdirSync(imgDIR)
 
-            if(isEmpty(files)) return console.log('No images found in folder!')
+			if (isEmpty(files)) return console.log("No images found in folder!")
 
 			for (let file of files) {
 				if (file.match(IMAGE_EXTENSIONS)) {
@@ -38,8 +45,9 @@ function transform(imgDIR, labels = []) {
 					let machineReadableImg = image
 						.grey() // convert the image to greyscale.
 						.resize({ width: 144, height: 144 }) // TODO: should be 144 || classifier.c.t.sizes = {w, h}
-                    
-                    machineReadableImg = applyConvolutions(machineReadableImg).getPixelsArray()
+
+					machineReadableImg =
+						applyConvolutions(machineReadableImg).getPixelsArray()
 
 					const output = {}
 					for (let label of labels) {
@@ -50,10 +58,16 @@ function transform(imgDIR, labels = []) {
 							if (s) output[s] = 0
 						}
 					}
-                    processed.push({
-                        input: arrayToRange(machineReadableImg),
-                        output,
-                    })
+					if (INCLUDE_METADATA) {
+						output.metadata = {
+							imageName,
+							imageLabel,
+						}
+					}
+					processed.push({
+						input: arrayToRange(machineReadableImg),
+						output,
+					})
 				}
 			}
 			resolve(processed)
@@ -65,8 +79,10 @@ async function start(DIR, labels) {
 	return await transform(DIR, labels)
 }
 
-export default async (OUTPUT_LABELS, { classifier, DIR }) => {
-    CLASSIFIER = classifier
+export default async (OUTPUT_LABELS, { classifier, DIR, includeMetaData }) => {
+	CLASSIFIER = classifier
+	INCLUDE_METADATA = includeMetaData
+
 	if (!DIR.isCustom && !fs.existsSync(DIR.path)) {
 		fs.mkdirSync(DIR.path, { recursive: true })
 		console.log(DIR.path + " - folder created!")

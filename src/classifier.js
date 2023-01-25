@@ -19,6 +19,7 @@ const DEFAULT_CONFIGS = [
 			logPeriod: 150,
 			layers: [32],
 			learningRate: 0.5,
+			applyConvolutions: true,
 		},
 	},
 ]
@@ -64,8 +65,7 @@ function Classifier(MODEL_NAME) {
 			if (trainingData.length) {
 				//   Train the model on the training data
 				console.log("Training with", trainingData.length, "images")
-				const generatedPath = DIR + "/generated/"
-				const saveModelPath = generatedPath + this.name.toLowerCase() + "/"
+				const saveModelPath = DIR + "/generated/"
 
 				const start = new Date()
 				console.log(
@@ -75,12 +75,12 @@ function Classifier(MODEL_NAME) {
 				)
 				this.crossValidate.train(trainingData, this.configurations.training)
 
-				console.log("Done training! Saving training data to " + saveModelPath)
+				console.log("TRAINING DONE 🎉! Saving training data to " + saveModelPath)
 				const json = this.crossValidate.toJSON() // all stats in json as well as neural networks
 				const data = JSON.stringify(json)
 
 				// Write Model to disk for later
-				if (!fs.existsSync(generatedPath)) {
+				if (!fs.existsSync(saveModelPath)) {
 					fs.mkdirSync(saveModelPath, { recursive: true })
 				}
 				fs.writeFileSync(
@@ -91,6 +91,57 @@ function Classifier(MODEL_NAME) {
 				const end = new Date().getTime()
 				console.log("end", (end - start) / 1000)
 			}
+		})
+	}
+
+	this.test = (options = { customPath: null, chopOutput: true }) => {
+		const DIR = options.customPath || `./AI/models/${this.name.toLowerCase()}`
+		const testImagesDir = DIR + "/testing_images"
+		const generatedPath = DIR + "/generated/"
+		const SAVED_MODEL_PATH =
+			generatedPath + "/" + `${this.name.toLowerCase()}-training-data.json`
+
+		transform([], {
+			classifier: this,
+			DIR: { path: testImagesDir, isCustom: !!options.customPath },
+			includeMetaData: true,
+		}).then((testingData) => {
+			const start = new Date()
+			console.log("start", start)
+
+			const jsonData = JSON.parse(fs.readFileSync(SAVED_MODEL_PATH))
+			const net = this.crossValidate.fromJSON(jsonData)
+
+			for (let data of testingData) {
+				const { metadata } = data.output
+
+				const guess = net.run(data.input)
+				if (options.chopOutput) {
+					let single = {
+						key: null,
+						value: 0,
+					}
+					for (const [key, value] of Object.entries(guess)) {
+						if (value > single.value) {
+							single = {
+								key,
+								value,
+							}
+						}
+					}
+					console.log(
+						`Image: ${metadata.imageName} - Guess: ${
+							single.key
+						} - Confidence ${(single.value * 100).toFixed(0)}% `,
+					)
+				} else {
+					console.log(`Image: ${metadata.imageName}`)
+					console.log(guess)
+				}
+			}
+
+			const end = new Date().getTime()
+			console.log("end", (end - start) / 1000)
 		})
 	}
 }
