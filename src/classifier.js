@@ -1,6 +1,6 @@
 import { CrossValidate, NeuralNetwork } from "brain.js"
 import fs from "fs"
-import transform from "./transform.js"
+import transformer from "./transformer.js"
 import { isEmpty, path } from "ramda"
 
 const DEFAULT_CONFIGS = [
@@ -54,17 +54,17 @@ function Classifier(MODEL_NAME) {
 	}
 
 	this.train = (OUTPUT_LABELS) => {
-		const customPath = path(["configurations", "training", "customPath"], this)
-        const modelPath = `./AI/models/${this.name.toLowerCase()}`
-		const DIR = customPath || modelPath + "/training_images"
-		transform(OUTPUT_LABELS, {
+		const customImgsPath = path(["configurations", "training", "imagesPath"], this)
+        const modelPath = `./AI/models/${this.name.toLowerCase()}/`
+		const DIR = customImgsPath || modelPath + "training_images/"
+		transformer(OUTPUT_LABELS, {
 			classifier: this,
-			DIR: { path: DIR, isCustom: !!customPath },
+			DIR: { path: DIR, isCustom: !!customImgsPath },
 		}).then((trainingData) => {
 			if (trainingData.length) {
 				//   Train the model on the training data
 				console.log("Training with", trainingData.length, "images")
-				const saveModelPath = DIR + "/generated/"
+				const saveModelPath = modelPath + "generated/"
 
 				const start = new Date()
 				console.log(
@@ -93,16 +93,16 @@ function Classifier(MODEL_NAME) {
 		})
 	}
 
-	this.test = (options = { customPath: null, chopOutput: true }) => {
+	this.test = (options = { imagesPath: null, chopOutput: true }) => {
         const modelPath = `./AI/models/${this.name.toLowerCase()}`
-		const DIR = options.customPath || modelPath + "/testing_images"
+		const DIR = options.imagesPath || modelPath + "/testing_images"
 		const generatedPath = modelPath + "/generated/"
 		const SAVED_MODEL_PATH =
 			generatedPath + "/" + `${this.name.toLowerCase()}-training-data.json`
 
-		transform([], {
+		transformer([], {
 			classifier: this,
-			DIR: { path: DIR, isCustom: !!options.customPath },
+			DIR: { path: DIR, isCustom: !!options.imagesPath },
 			includeMetaData: true,
 		}).then((testingData) => {
 			const start = new Date()
