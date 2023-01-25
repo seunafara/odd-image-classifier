@@ -2,7 +2,7 @@ import fs from "fs"
 import { Image } from "image-js"
 import { basename, extname, join } from "path"
 import { isEmpty, path } from "ramda"
-import { arrayToRange, convolutions, sleep } from "./utils/index.js"
+import { arrayToRange, convolutions, encodeString, sleep } from "./utils/index.js"
 import { IMAGE_EXTENSIONS } from "./config/index.js"
 
 const processed = []
@@ -32,7 +32,10 @@ function transform(imgDIR, labels = []) {
 			if (isEmpty(files)) return console.log("No images found in folder!")
 			const LARGE_FOLDER = files.length > 100
 			if(LARGE_FOLDER) {
-				console.log(`Image Transformation started! ${files.length} files were detected. This may take time to transform!`);
+				console.log(`Image Transformation started! ${files.length} files were detected. This may take time to transform and train!`);
+				console.log(
+					"\n\nTo stop your computer from SLEEPING during training \nMacbook (Run via Terminal): caffeinate -d\n",
+				)
 				await sleep(2000)
 			}
 
@@ -61,9 +64,9 @@ function transform(imgDIR, labels = []) {
 					for (let label of labels) {
 						const [m, [f, s]] = label
 						if (imageLabel === m) {
-							output[m] = 0.999
-							if (f) output[f] = 0
-							if (s) output[s] = 0
+							output[encodeString(m)] = 0.999
+							if (f) output[encodeString(f)] = 0
+							if (s) output[encodeString(s)] = 0
 						}
 					}
 					if (INCLUDE_METADATA) {
