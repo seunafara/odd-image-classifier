@@ -1,7 +1,7 @@
 import fs from "fs"
 import { Image } from "image-js"
 import { basename, extname, join } from "path"
-import { isEmpty, path } from "ramda"
+import { flatten, isEmpty, path } from "ramda"
 import {
 	arrayToRange,
 	convolutions,
@@ -29,12 +29,11 @@ const applyConvolutions = (image) => {
 	return image
 }
 
-function transform(imgDIR, labels = []) {
+function transform(imgDIR) {
 	return new Promise((resolve) => {
 		setTimeout(async () => {
 			// Get a list of all files in the directory
 			const files = TYPE === "batch" ? fs.readdirSync(imgDIR) : [imgDIR]
-
 			let count = 1
 
 			if (isEmpty(files)) return console.log("No images found in folder!")
@@ -79,14 +78,22 @@ function transform(imgDIR, labels = []) {
 					machineReadableImg = convoluted.getPixelsArray()
 
 					const output = {}
+					const labels = path(
+						["configurations", "training", "output_labels"],
+						CLASSIFIER,
+					)
+
 					for (let label of labels) {
-						const [m, [f, s]] = label
-						if (imageLabel === m) {
+						const flat = flatten(label)
+						const [m, f, s] = flat
+						if (m === imageLabel) {
 							output[encodeString(m)] = 0.999
 							if (f) output[encodeString(f)] = 0
 							if (s) output[encodeString(s)] = 0
+							break
 						}
 					}
+
 					if (INCLUDE_METADATA) {
 						output.metadata = {
 							imageName,
@@ -97,10 +104,12 @@ function transform(imgDIR, labels = []) {
 						console.log("Image number " + count + " has been processed")
 						count += 1
 					}
-					processed.push({
-						input: arrayToRange(machineReadableImg),
-						output,
-					})
+					if (flatten(labels).includes(imageLabel)) {
+						processed.push({
+							input: arrayToRange(machineReadableImg),
+							output,
+						})
+					}
 				}
 			}
 			resolve(processed)
@@ -108,13 +117,13 @@ function transform(imgDIR, labels = []) {
 	})
 }
 
-async function start(DIR, labels) {
-	return await transform(DIR, labels)
+async function start(DIR) {
+	return await transform(DIR)
 }
 
 export default async (
-	OUTPUT_LABELS,
-	{ classifier, DIR, includeMetaData, modelPath, type },
+	classifier,
+	{ DIR, includeMetaData, modelPath, type },
 ) => {
 	CLASSIFIER = classifier
 	INCLUDE_METADATA = includeMetaData
@@ -128,5 +137,5 @@ export default async (
 		return []
 	}
 
-	return start(DIR.path, OUTPUT_LABELS)
+	return start(DIR.path)
 }

@@ -34,15 +34,14 @@ function Classifier(MODEL_NAME) {
 		throw new Error("Invalid configuration type")
 	}
 
-	this.train = (OUTPUT_LABELS) => {
+	this.train = () => {
 		const customImgsPath = path(
 			["configurations", "training", "imagesPath"],
 			this,
 		)
 		const modelPath = `./AI/models/${this.name.toLowerCase()}`
 		const DIR = customImgsPath || modelPath + "/training_images"
-		return transformer(OUTPUT_LABELS, {
-			classifier: this,
+		return transformer(this, {
 			DIR: { path: DIR, isCustom: !!customImgsPath },
 			modelPath,
 			type: "batch",
@@ -62,17 +61,17 @@ function Classifier(MODEL_NAME) {
 		const SAVED_MODEL_PATH =
 			generatedPath + "/" + `${this.name.toLowerCase()}-training-data.json`
 
-		return transformer([], {
-			classifier: this,
+		return transformer(this, {
 			DIR: { path: DIR, isCustom: !!imagesPath },
 			includeMetaData: true,
 			type: "batch",
-		}).then((testingData) =>
-			test(this.crossValidate, testingData, {
+		}).then((testingData) => {
+			if (testingData.length === 0) return console.log("No data in test folder")
+			return test(this.crossValidate, testingData, {
 				modelPath: SAVED_MODEL_PATH,
 				options,
-			}),
-		)
+			})
+		})
 	}
 
 	this.test.single = (imagePath = null, options = { chopOutput: true }) => {
@@ -81,8 +80,7 @@ function Classifier(MODEL_NAME) {
 		const SAVED_MODEL_PATH =
 			generatedPath + "/" + `${this.name.toLowerCase()}-training-data.json`
 
-		return transformer([], {
-			classifier: this,
+		return transformer(this, {
 			DIR: { path: imagePath, isCustom: false },
 			includeMetaData: true,
 		}).then((testingData) =>
