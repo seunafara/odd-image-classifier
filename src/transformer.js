@@ -8,6 +8,7 @@ import { IMAGE_EXTENSIONS } from "./config/index.js"
 const processed = []
 let CLASSIFIER
 let INCLUDE_METADATA
+let MODEL_PATH
 
 const applyConvolutions = (image) => {
 	const canClassify = path(
@@ -15,8 +16,8 @@ const applyConvolutions = (image) => {
 		CLASSIFIER,
 	)
 	if (canClassify) {
-		for (const value of Object.values(convolutions)) {
-			image = image.convolution(value)
+		for (const c of Object.values(convolutions)) {
+			image = image.convolution(c)
 		}
 	}
 	return image
@@ -25,6 +26,10 @@ const applyConvolutions = (image) => {
 function transform(imgDIR, labels = []) {
 	return new Promise((resolve) => {
 		setTimeout(async () => {
+			// const saveConvolutions = path(
+			// 	["configurations", "training", "saveConvolutions"],
+			// 	CLASSIFIER,
+			// )
 			// Get a list of all files in the directory
 			const files = fs.readdirSync(imgDIR)
 			let count = 1
@@ -53,16 +58,27 @@ function transform(imgDIR, labels = []) {
 					// We determine the label by picking the string before the first .
 					// File name format - **label** + . + **unique_id** + . + {.jpg, .png, .jpeg}
 					// e.g cat.001.png file label = cat
-					// e.g cat.002.png file label = cat
 					// e.g dog.001.png file label = dog
 
 					let image = await Image.load(img)
 					let machineReadableImg = image
 						.grey() // convert the image to greyscale.
-						.resize({ width: imageSize?.width || 144, height: imageSize?.height || 144 }) // TODO: should be 144 || classifier.c.t.sizes = {w, h}
+						.resize({ width: imageSize?.width || 144, height: imageSize?.height || 144 })
 
-					machineReadableImg =
-						applyConvolutions(machineReadableImg).getPixelsArray()
+					const convoluted = applyConvolutions(machineReadableImg)
+
+					// if (saveConvolutions){
+					// 	const convolutionsPath = `${MODEL_PATH}/generated/convolutions/`
+					// 	if (!fs.existsSync(convolutionsPath)) {
+					// 		fs.mkdirSync(convolutionsPath, { recursive: true })
+					// 	}
+					// 	const cImgPath = convolutionsPath + imageName
+					// 	convoluted.save(`${cImgPath}.jpg`)
+					// 	// console.log(`${imageName}.jpg covolution has been generated and saved!`)
+					// }
+						
+					// Apply convolutions
+					machineReadableImg = convoluted.getPixelsArray()
 
 					const output = {}
 					for (let label of labels) {
@@ -98,9 +114,13 @@ async function start(DIR, labels) {
 	return await transform(DIR, labels)
 }
 
-export default async (OUTPUT_LABELS, { classifier, DIR, includeMetaData }) => {
+export default async (
+	OUTPUT_LABELS,
+	{ classifier, DIR, includeMetaData, modelPath },
+) => {
 	CLASSIFIER = classifier
 	INCLUDE_METADATA = includeMetaData
+	MODEL_PATH = modelPath
 
 	if (!DIR.isCustom && !fs.existsSync(DIR.path)) {
 		fs.mkdirSync(DIR.path, { recursive: true })
