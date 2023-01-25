@@ -30,6 +30,8 @@ function transform(imgDIR, labels = []) {
 			let count = 1
 
 			if (isEmpty(files)) return console.log("No images found in folder!")
+
+			// Check files length
 			const LARGE_FOLDER = files.length > 100
 			if(LARGE_FOLDER) {
 				console.log(`Image Transformation started! ${files.length} files were detected. This may take time to transform and train!`);
@@ -38,8 +40,10 @@ function transform(imgDIR, labels = []) {
 				)
 				await sleep(2000)
 			}
-
-			
+			const imageSize = path(
+				["configurations", "training", "imageSize"],
+				CLASSIFIER,
+			)
 
 			for (let file of files) {
 				if (file.match(IMAGE_EXTENSIONS)) {
@@ -55,7 +59,7 @@ function transform(imgDIR, labels = []) {
 					let image = await Image.load(img)
 					let machineReadableImg = image
 						.grey() // convert the image to greyscale.
-						.resize({ width: 144, height: 144 }) // TODO: should be 144 || classifier.c.t.sizes = {w, h}
+						.resize({ width: imageSize?.width || 144, height: imageSize?.height || 144 }) // TODO: should be 144 || classifier.c.t.sizes = {w, h}
 
 					machineReadableImg =
 						applyConvolutions(machineReadableImg).getPixelsArray()
