@@ -43,9 +43,12 @@ function Classifier(MODEL_NAME) {
 	this.configure = (config, options) => {
 		const prevConfig = DEFAULT_CONFIGS.find(({ name }) => config === name)
 		if (prevConfig) {
-            this.configurations[config] = { ...this.configurations[config], ...options }
-            return
-        }
+			this.configurations[config] = {
+				...this.configurations[config],
+				...options,
+			}
+			return
+		}
 		throw new Error("Invalid configuration type")
 	}
 
@@ -58,34 +61,36 @@ function Classifier(MODEL_NAME) {
 			classifier: this,
 			DIR: { path: trainingImagesDir, isCustom: !!customPath },
 		}).then((trainingData) => {
-			//   Train the model on the training data
-			console.log("Training with", trainingData.length, "images")
-			const generatedPath = DIR + "/generated/"
-			const saveModelPath = generatedPath + this.name.toLowerCase() + "/"
+			if (trainingData.length) {
+				//   Train the model on the training data
+				console.log("Training with", trainingData.length, "images")
+				const generatedPath = DIR + "/generated/"
+				const saveModelPath = generatedPath + this.name.toLowerCase() + "/"
 
-			const start = new Date()
-			console.log(
-				"Training started at " +
-					start +
-					"\nPlease wait, This may take a while!",
-			)
-			this.crossValidate.train(trainingData, this.configurations.training)
+				const start = new Date()
+				console.log(
+					"Training started at " +
+						start +
+						"\nPlease wait, This may take a while!",
+				)
+				this.crossValidate.train(trainingData, this.configurations.training)
 
-			console.log("Done training! Saving training data to " + saveModelPath)
-			const json = this.crossValidate.toJSON() // all stats in json as well as neural networks
-			const data = JSON.stringify(json)
+				console.log("Done training! Saving training data to " + saveModelPath)
+				const json = this.crossValidate.toJSON() // all stats in json as well as neural networks
+				const data = JSON.stringify(json)
 
-			// Write Model to disk for later
-			if (!fs.existsSync(generatedPath)) {
-				fs.mkdirSync(saveModelPath, { recursive: true })
+				// Write Model to disk for later
+				if (!fs.existsSync(generatedPath)) {
+					fs.mkdirSync(saveModelPath, { recursive: true })
+				}
+				fs.writeFileSync(
+					saveModelPath + `${this.name.toLowerCase()}-training-data.json`,
+					data,
+				)
+
+				const end = new Date().getTime()
+				console.log("end", (end - start) / 1000)
 			}
-			fs.writeFileSync(
-				saveModelPath + `${this.name.toLowerCase()}-training-data.json`,
-				data,
-			)
-
-			const end = new Date().getTime()
-			console.log("end", (end - start) / 1000)
 		})
 	}
 }

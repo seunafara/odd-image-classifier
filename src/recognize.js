@@ -15,11 +15,13 @@ const applyConvolutions = (image) => {
     return image
 }
 
-function recognize(imgDIR, labels) {
+function transform(imgDIR, labels = []) {
 	return new Promise((resolve) => {
 		setTimeout(async () => {
 			// Get a list of all files in the directory
 			const files = fs.readdirSync(imgDIR)
+
+            if(isEmpty(files)) return console.log('No imagws found in folder!')
 
 			for (let file of files) {
 				if (file.match(IMAGE_EXTENSIONS)) {
@@ -60,16 +62,16 @@ function recognize(imgDIR, labels) {
 }
 
 async function start(DIR, labels) {
-	return await recognize(DIR, labels)
+	return await transform(DIR, labels)
 }
 
 export default async (OUTPUT_LABELS, { classifier, DIR }) => {
     CLASSIFIER = classifier
 	if (!DIR.isCustom && !fs.existsSync(DIR.path)) {
 		fs.mkdirSync(DIR.path, { recursive: true })
-		console.log("AI Model - " + classifier.name + " - folder created!")
-		console.log("Add training images to " + DIR.path)
-		return
+		console.log(DIR.path + " - folder created!")
+		console.log("Add images to " + DIR.path)
+		return []
 	}
 
 	return start(DIR.path, OUTPUT_LABELS)
