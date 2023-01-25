@@ -2,7 +2,7 @@ import fs from "fs"
 import { Image } from "image-js"
 import { basename, extname, join } from "path"
 import { isEmpty, path } from "ramda"
-import { arrayToRange, convolutions } from "./utils/index.js"
+import { arrayToRange, convolutions, sleep } from "./utils/index.js"
 import { IMAGE_EXTENSIONS } from "./config/index.js"
 
 const processed = []
@@ -27,8 +27,16 @@ function transform(imgDIR, labels = []) {
 		setTimeout(async () => {
 			// Get a list of all files in the directory
 			const files = fs.readdirSync(imgDIR)
+			let count = 1
 
 			if (isEmpty(files)) return console.log("No images found in folder!")
+			const LARGE_FOLDER = files.length > 100
+			if(LARGE_FOLDER) {
+				console.log(`Image Transformation started! ${files.length} files were detected. This may take time to transform!`);
+				await sleep(2000)
+			}
+
+			
 
 			for (let file of files) {
 				if (file.match(IMAGE_EXTENSIONS)) {
@@ -63,6 +71,10 @@ function transform(imgDIR, labels = []) {
 							imageName,
 							imageLabel,
 						}
+					}
+					if(LARGE_FOLDER){
+						console.log("Image number " + count + " has been processed")
+						count += 1
 					}
 					processed.push({
 						input: arrayToRange(machineReadableImg),
