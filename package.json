@@ -1,0 +1,17 @@
+{
+  "name": "odd-image-classifier",
+  "version": "1.0.0",
+  "description": "AI Image classifier using Brain.js",
+  "main": "ai.js",
+  "type": "module",
+  "scripts": {},
+  "keywords": [],
+  "author": "Oluseun Afara",
+  "license": "ISC",
+  "dependencies": {
+    "brain.js": "^2.0.0-beta.18",
+    "gpu.js": "^2.16.0",
+    "image-js": "^0.35.2",
+    "ramda": "^0.28.0"
+  }
+}
