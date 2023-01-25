@@ -33,7 +33,7 @@ export default (net, testingData, { modelPath, options }) => {
 			outputArr.push({
 				image: metadata.imageName,
 				guess: decodeString(single.key),
-				['confidence-score']: (single.value * 100).toFixed(0) + '/100',
+				confidence: (single.value * 100).toFixed(0),
 			})
 		} else {
 			// console.log(`Image: ${metadata.imageName}`)
