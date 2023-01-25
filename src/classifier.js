@@ -95,15 +95,15 @@ function Classifier(MODEL_NAME) {
 	}
 
 	this.test = (options = { customPath: null, chopOutput: true }) => {
-		const DIR = options.customPath || `./AI/models/${this.name.toLowerCase()}`
-		const testImagesDir = DIR + "/testing_images"
-		const generatedPath = DIR + "/generated/"
+        const modelPath = `./AI/models/${this.name.toLowerCase()}`
+		const DIR = options.customPath || modelPath + "/testing_images"
+		const generatedPath = modelPath + "/generated/"
 		const SAVED_MODEL_PATH =
 			generatedPath + "/" + `${this.name.toLowerCase()}-training-data.json`
 
 		transform([], {
 			classifier: this,
-			DIR: { path: testImagesDir, isCustom: !!options.customPath },
+			DIR: { path: DIR, isCustom: !!options.customPath },
 			includeMetaData: true,
 		}).then((testingData) => {
 			const start = new Date()
