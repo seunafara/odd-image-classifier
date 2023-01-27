@@ -2,6 +2,13 @@
 
 The `odd-image-classifier` library is an image classifier built on top of brain.js. It allows you to train a neural network to recognize images based on a set of output labels.
 
+# Installation
+To use the odd-image-classifier library, you can install it using npm:
+
+```javascript 
+npm install odd-image-classifier 
+```
+
 # Usage
 To use the `odd-image-classifier`, you can import the Classifier class and create a new instance of it. You can then configure the neural network using the configure method. The following example shows how to create a classifier for recognizing numbers:
 
